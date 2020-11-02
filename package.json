@@ -1,0 +1,23 @@
+{
+  "name": "pwa-udemy",
+  "version": "1.0.0",
+  "description": "My osolutions and code-alongs from Udemy's [Progressive Web Apps course](https://www.udemy.com/course/progressive-web-app-pwa-the-complete-guid).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cascandaliato/pwa-udemy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cascandaliato/pwa-udemy/issues"
+  },
+  "homepage": "https://github.com/cascandaliato/pwa-udemy#readme",
+  "dependencies": {
+    "prettier": "^2.1.2"
+  }
+}
