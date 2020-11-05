@@ -18,3 +18,5 @@ window.addEventListener("beforeinstallprompt", (e) => {
   // Update UI notify the user they can install the PWA
   // showInstallPromotion();
 });
+
+// navigator.serviceWorker.controller.postMessage(`foobar`);
