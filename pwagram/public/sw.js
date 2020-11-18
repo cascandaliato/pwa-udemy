@@ -1,5 +1,5 @@
-const CACHE_STATIC_NAME = "static-v6";
-const CACHE_DYNAMIC_NAME = "dynamic-v2";
+const CACHE_STATIC_NAME = "static-v12";
+const CACHE_DYNAMIC_NAME = "dynamic-v12";
 
 self.addEventListener("install", (event) => {
   // console.log("[Service Worker] Installing Service Worker...", event);
@@ -13,6 +13,7 @@ self.addEventListener("install", (event) => {
       cache.addAll([
         "/",
         "/index.html",
+        "/offline.html",
         "/src/js/app.js",
         "/src/js/feed.js",
         // "/src/js/promise.js", // no point in storing these, older browsers won't have support for cache and service worker anyway; except in this case they are always loaded so caching them will speed things up
@@ -46,6 +47,7 @@ self.addEventListener("activate", (event) => {
   return self.clients.claim();
 });
 
+// cache with network fallback
 self.addEventListener("fetch", (event) => {
   console.log("[Service Worker] Fetching something...", event);
   event.respondWith(
@@ -61,11 +63,34 @@ self.addEventListener("fetch", (event) => {
               return res;
             });
           })
-          .catch();
+          .catch(() =>
+            caches
+              .open(CACHE_STATIC_NAME)
+              .then((cache) => cache.match("/offline.html"))
+          );
       }
     })
     // fetch(event.request)
   );
 });
+
+// cache-only
+// self.addEventListener("fetch", (event) => {
+//   console.log("[Service Worker] Fetching something...", event);
+//   event.respondWith(caches.match(event.request));
+// });
+
+// network-only
+// self.addEventListener("fetch", (event) => {
+//   event.respondWith(fetch(event.request));
+// });
+
+// network with cache fallback
+// self.addEventListener("fetch", (event) => {
+//   console.log("[Service Worker] Fetching something...", event);
+//   event.respondWith(
+//     fetch(event.request).then(/* optionally cache */).catch((_) => caches.match(event.request))
+//   );
+// });
 
 // self.addEventListener("message", function (e) {});
