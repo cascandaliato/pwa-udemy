@@ -42,7 +42,7 @@ function onSaveButtonClicked(event) {
   }
 }
 
-function clearCard() {
+function clearCards() {
   while (sharedMomentsArea.hasChildNodes()) {
     sharedMomentsArea.removeChild(sharedMomentsArea.lastChild);
   }
@@ -78,7 +78,7 @@ function createCard() {
 var url = "https://httpbin.org/get";
 var networkDataReceived = false;
 
-fetch("https://httpbin.org/get")
+fetch(url)
   .then(function (res) {
     return res.json();
   })
