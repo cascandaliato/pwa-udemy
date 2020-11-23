@@ -113,24 +113,33 @@ fetch(url)
     updateUI(dataArray);
   });
 
-if ("caches" in window) {
-  caches
-    .match(url)
-    .then((response) => {
-      if (response) {
-        return response.json();
-      }
-    })
-    .then((data) => {
-      if (!networkDataReceived) {
-        console.log("from cache", data);
-        // clearCards();
-        // createCard();
-        const dataArray = [];
-        for (const key in data) {
-          dataArray.push(data[key]);
-        }
-        updateUI(dataArray);
-      }
-    });
+if ("indexedDB" in window) {
+  readAllData("posts").then((data) => {
+    if (!networkDataReceived) {
+      console.log("From indexeDB", data);
+      updateUI(data);
+    }
+  });
 }
+
+// if ("caches" in window) {
+//   caches
+//     .match(url)
+//     .then((response) => {
+//       if (response) {
+//         return response.json();
+//       }
+//     })
+//     .then((data) => {
+//       if (!networkDataReceived) {
+//         console.log("from cache", data);
+//         // clearCards();
+//         // createCard();
+//         const dataArray = [];
+//         for (const key in data) {
+//           dataArray.push(data[key]);
+//         }
+//         updateUI(dataArray);
+//       }
+//     });
+// }

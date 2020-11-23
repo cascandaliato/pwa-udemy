@@ -1,4 +1,7 @@
-const VER = 18;
+importScripts("/src/js/idb.js");
+importScripts("/src/js/utility.js");
+
+const VER = 27;
 
 const CACHE_STATIC_NAME = `static-v${VER}`;
 const CACHE_DYNAMIC_NAME = `dynamic-v${VER}`;
@@ -9,6 +12,7 @@ const STATIC_ASSETS = [
   "/offline.html",
   "/src/js/app.js",
   "/src/js/feed.js",
+  "/src/js/idb.js",
   "/src/js/material.min.js",
   "/src/css/app.css",
   "/src/css/feed.css",
@@ -49,22 +53,23 @@ self.addEventListener("install", (event) => {
       // cache.add("/");
       // cache.add("/index.html");
       // cache.add("/src/js/app.js");
-      cache.addAll([
-        "/",
-        "/index.html",
-        "/offline.html",
-        "/src/js/app.js",
-        "/src/js/feed.js",
-        // "/src/js/promise.js", // no point in storing these, older browsers won't have support for cache and service worker anyway; except in this case they are always loaded so caching them will speed things up
-        // "/src/js/fetch.js",
-        "/src/js/material.min.js",
-        "/src/css/app.css",
-        "/src/css/feed.css",
-        "/src/images/main-image.jpg",
-        "https://fonts.googleapis.com/css?family=Roboto:400,700",
-        "https://fonts.googleapis.com/icon?family=Material+Icons",
-        "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css",
-      ]);
+      // cache.addAll([
+      //   "/",
+      //   "/index.html",
+      //   "/offline.html",
+      //   "/src/js/app.js",
+      //   "/src/js/feed.js",
+      //   // "/src/js/promise.js", // no point in storing these, older browsers won't have support for cache and service worker anyway; except in this case they are always loaded so caching them will speed things up
+      //   // "/src/js/fetch.js",
+      //   "/src/js/material.min.js",
+      //   "/src/css/app.css",
+      //   "/src/css/feed.css",
+      //   "/src/images/main-image.jpg",
+      //   "https://fonts.googleapis.com/css?family=Roboto:400,700",
+      //   "https://fonts.googleapis.com/icon?family=Material+Icons",
+      //   "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css",
+      // ]);
+      cache.addAll(STATIC_ASSETS);
     })
   );
 });
@@ -94,13 +99,26 @@ self.addEventListener("fetch", (event) => {
 
   if (event.request.url.indexOf(url) > -1) {
     event.respondWith(
-      caches.open(CACHE_DYNAMIC_NAME).then((cache) =>
-        fetch(event.request).then((res) => {
-          // trimCache(CACHE_DYNAMIC_NAME, 3);
-          cache.put(event.request, res.clone());
-          return res;
-        })
-      )
+      // caches.open(CACHE_DYNAMIC_NAME).then((cache) =>
+      //   fetch(event.request).then((res) => {
+      //     // trimCache(CACHE_DYNAMIC_NAME, 3);
+      //     cache.put(event.request, res.clone());
+      //     return res;
+      //   })
+      // )
+      fetch(event.request).then((res) => {
+        const clonedRes = res.clone();
+        clearAllData("posts")
+          .then(() => clonedRes.json())
+          .then((data) => {
+            Object.keys(data).forEach((k) =>
+              writeData("posts", data[k]).then(() => {
+                // deleteItemFromData("posts", k)
+              })
+            );
+          });
+        return res;
+      })
     );
   } else if (
     // new RegExp("\\b" + STATIC_ASSETS.join("\\b|\\b") + "\\b").test(
