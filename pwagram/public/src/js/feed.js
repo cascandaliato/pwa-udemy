@@ -6,7 +6,11 @@ var closeCreatePostModalButton = document.querySelector(
 var sharedMomentsArea = document.querySelector("#shared-moments");
 
 function openCreatePostModal() {
-  createPostArea.style.display = "block";
+  // createPostArea.style.display = "block";
+  // setTimeout(() => {
+  //   createPostArea.style.transform = "translateY(0)";
+  // }, 1);
+  createPostArea.style.transform = "translateY(0)";
   if (deferredPrompt) {
     deferredPrompt.prompt();
 
@@ -30,7 +34,8 @@ function openCreatePostModal() {
 }
 
 function closeCreatePostModal() {
-  createPostArea.style.display = "none";
+  // createPostArea.style.display = "none";
+  createPostArea.style.transform = "translateY(100vh)";
 }
 
 shareImageButton.addEventListener("click", openCreatePostModal);
@@ -61,6 +66,7 @@ function createCard(data) {
   cardTitle.style.backgroundImage = `url(${data.image})`;
   cardTitle.style.backgroundSize = "cover";
   cardTitle.style.height = "180px";
+  cardTitle.style.backgroundPosition = "bottom"; // Or try 'center'
   cardWrapper.appendChild(cardTitle);
   var cardTitleTextElement = document.createElement("h2");
   cardTitleTextElement.style.color = "white";
