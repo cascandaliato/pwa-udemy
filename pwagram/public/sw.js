@@ -1,7 +1,7 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/utility.js");
 
-const VER = 39;
+const VER = 44;
 
 const CACHE_STATIC_NAME = `static-v${VER}`;
 const CACHE_DYNAMIC_NAME = `dynamic-v${VER}`;
@@ -203,3 +203,37 @@ self.addEventListener("fetch", (event) => {
 // });
 
 // self.addEventListener("message", function (e) {});
+
+self.addEventListener("sync", (event) => {
+  console.log("[Service Worker] Background syncing", event);
+  if (event.tag === "sync-new-post") {
+    console.log("[Service Worker] Syncing new post");
+    event.waitUntil(
+      readAllData("sync-posts").then((data) => {
+        for (const dt of data) {
+          fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              id: dt.id,
+              title: dt.title,
+              location: dt.location,
+              image:
+                "https://firebasestorage.googleapis.com/v0/b/pwa-udemy-9d70f.appspot.com/o/sf-boat.jpg?alt=media&token=bdc56969-742d-4ec6-a9cb-5aecd188f4ff",
+            }),
+          })
+            .then((res) => {
+              console.log("Send data", res);
+              if (res.ok) {
+                deleteItemFromData("sync-posts", dt.id);
+              }
+            })
+            .catch(console.error);
+        }
+      })
+    );
+  }
+});
