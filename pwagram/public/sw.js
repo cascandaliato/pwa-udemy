@@ -1,7 +1,7 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/utility.js");
 
-const VER = 44;
+const VER = 46;
 
 const CACHE_STATIC_NAME = `static-v${VER}`;
 const CACHE_DYNAMIC_NAME = `dynamic-v${VER}`;
@@ -236,4 +236,23 @@ self.addEventListener("sync", (event) => {
       })
     );
   }
+});
+
+self.addEventListener("notificationclick", (event) => {
+  const notification = event.notification;
+  const action = event.action;
+
+  console.log(notification);
+
+  if (action === "confirm") {
+    console.log("Confirm was chosen");
+    notification.close();
+  } else {
+    console.log(action);
+    // notification.close();
+  }
+});
+
+self.addEventListener("notificationclose", (event) => {
+  console.log("Notification was closed", event);
 });
