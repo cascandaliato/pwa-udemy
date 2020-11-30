@@ -97,12 +97,43 @@ function displayConfirmNotification() {
 function configurePushSub() {
   if (!("serviceWorker" in navigator)) return;
 
+  let reg;
   navigator.serviceWorker.ready
-    .then((swreg) => swreg.pushManager.getSubscription())
+    .then((swreg) => {
+      reg = swreg;
+      return swreg.pushManager.getSubscription();
+    })
     .then((sub) => {
       if (sub === null) {
+        const vapidPublicKey =
+          "BPGomLXMPc8ZnoyTP5tmcM8_rMobhDtn98wPRyvlMfxEOhsSJMkwRYZkzno0pcH47APNCqaG9z5Fyz8euWCT4Ww";
+        const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
+        return reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedKey,
+        });
       }
-    });
+    })
+    .then((newSub) => {
+      console.log(newSub);
+      return fetch(
+        "https://pwa-udemy-9d70f.firebaseio.com/subscriptions.json",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(newSub),
+        }
+      );
+    })
+    .then((res) => {
+      if (res.ok) {
+        displayConfirmNotification();
+      }
+    })
+    .catch(console.error);
 }
 
 function askForNotificationPermission() {
