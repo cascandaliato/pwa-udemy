@@ -1,7 +1,7 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/utility.js");
 
-const VER = 46;
+const VER = 51;
 
 const CACHE_STATIC_NAME = `static-v${VER}`;
 const CACHE_DYNAMIC_NAME = `dynamic-v${VER}`;

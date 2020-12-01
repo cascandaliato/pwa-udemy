@@ -7,6 +7,58 @@ var sharedMomentsArea = document.querySelector("#shared-moments");
 const form = document.querySelector("form");
 const titleInput = document.querySelector("#title");
 const locationInput = document.querySelector("#location");
+const videoPlayer = document.querySelector("#player");
+const canvas = document.querySelector("#canvas");
+const captureButton = document.querySelector("#capture-btn");
+const imagePicker = document.querySelector("#image-picker");
+const imagePickerArea = document.querySelector("#pick-image");
+
+function initializeMedia() {
+  if (!("mediaDevices" in navigator)) {
+    navigator.mediaDevices = {};
+  }
+
+  if (!("getUserMedia" in navigator.mediaDevices)) {
+    navigator.mediaDevices.getUserMedia = function (constraints) {
+      const getUserMedia =
+        navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+      if (!getUserMedia) {
+        return Promise.reject(new Error("getUserMedia is not supported"));
+      }
+
+      return new Promise(function (resolve, reject) {
+        getUserMedia.call(navigator, constraints, resolve, reject);
+      });
+    };
+  }
+
+  navigator.mediaDevices
+    // .getUserMedia({ video: true, audio: true })
+    .getUserMedia({ video: true })
+    .then((stream) => {
+      videoPlayer.srcObject = stream;
+      videoPlayer.style.display = "block";
+    })
+    .catch((err) => {
+      imagePickerArea.style.display = "block";
+    });
+}
+
+captureButton.addEventListener("click", (event) => {
+  canvas.style.display = "block";
+  videoPlayer.style.display = "none";
+  captureButton.style.display = "none";
+  const context = canvas.getContext("2d");
+  context.drawImage(
+    videoPlayer,
+    0,
+    0,
+    canvas.width,
+    (videoPlayer.videoHeight / videoPlayer.videoWidth) * canvas.width
+  );
+  videoPlayer.srcObject.getVideoTracks().forEach((track) => track.stop());
+});
 
 function openCreatePostModal() {
   // createPostArea.style.display = "block";
@@ -14,6 +66,7 @@ function openCreatePostModal() {
   //   createPostArea.style.transform = "translateY(0)";
   // }, 1);
   createPostArea.style.transform = "translateY(0)";
+  initializeMedia();
   if (deferredPrompt) {
     deferredPrompt.prompt();
 
@@ -39,6 +92,10 @@ function openCreatePostModal() {
 function closeCreatePostModal() {
   // createPostArea.style.display = "none";
   createPostArea.style.transform = "translateY(100vh)";
+
+  imagePickerArea.style.display = "none";
+  videoPlayer.style.display = "none";
+  canvas.style.display = "none";
 }
 
 shareImageButton.addEventListener("click", openCreatePostModal);
