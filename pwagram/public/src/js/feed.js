@@ -12,6 +12,45 @@ const canvas = document.querySelector("#canvas");
 const captureButton = document.querySelector("#capture-btn");
 const imagePicker = document.querySelector("#image-picker");
 const imagePickerArea = document.querySelector("#pick-image");
+const locationBtn = document.querySelector("#location-btn");
+const locationLoader = document.querySelector("#location-loader");
+let picture = null;
+let fetchedLocation = { lat: 0, lng: 0 };
+
+locationBtn.addEventListener("click", (event) => {});
+
+function initializeLocation() {
+  if (!("geolocation" in navigator)) {
+    locationBtn.style.display = "none";
+    return;
+  }
+
+  let sawAlert = false;
+
+  locationBtn.style.display = "none";
+  locationLoader.style.display = "block";
+
+  navigator.geolocation.getCurrentPosition(
+    function success(position) {
+      locationBtn.style.display = "inline";
+      locationLoader.style.display = "none";
+      fetchedLocation = { lat: position.coords.latitude, lng: 0 }; // longitude
+      locationInput.value = "In Munich";
+      document.querySelector("#manual-location").classList.add("is-focused");
+    },
+    function failure(error) {
+      console.error(error);
+      locationBtn.style.display = "inline";
+      locationLoader.style.display = "none";
+      if (!sawAlert) {
+        alert("Couldn't fetch location, please enter manually");
+        sawAlert = true;
+      }
+      fetchedLocation = { lat: 0, lng: 0 };
+    },
+    { timeout: 7000 }
+  );
+}
 
 function initializeMedia() {
   if (!("mediaDevices" in navigator)) {
@@ -58,6 +97,11 @@ captureButton.addEventListener("click", (event) => {
     (videoPlayer.videoHeight / videoPlayer.videoWidth) * canvas.width
   );
   videoPlayer.srcObject.getVideoTracks().forEach((track) => track.stop());
+  picture = dataURItoBlob(canvasElement.toDataURL());
+});
+
+imagePicker.addEventListener("change", function (event) {
+  picture = event.target.files[0];
 });
 
 function openCreatePostModal() {
@@ -65,8 +109,11 @@ function openCreatePostModal() {
   // setTimeout(() => {
   //   createPostArea.style.transform = "translateY(0)";
   // }, 1);
-  createPostArea.style.transform = "translateY(0)";
+  setTimeout(() => {
+    createPostArea.style.transform = "translateY(0)";
+  }, 1);
   initializeMedia();
+  initializeLocation();
   if (deferredPrompt) {
     deferredPrompt.prompt();
 
@@ -91,11 +138,19 @@ function openCreatePostModal() {
 
 function closeCreatePostModal() {
   // createPostArea.style.display = "none";
-  createPostArea.style.transform = "translateY(100vh)";
-
   imagePickerArea.style.display = "none";
   videoPlayer.style.display = "none";
   canvas.style.display = "none";
+  captureBtn.style.display = "inline";
+  locationBtn.style.display = "inline";
+  locationLoader.style.display = "none";
+
+  if (videoPlayer.srcObject) {
+    videoPlayer.srcObject.getVideoTracks().forEach((track) => track.stop());
+  }
+  setTimeout(() => {
+    createPostArea.style.transform = "translateY(100vh)";
+  }, 1);
 }
 
 shareImageButton.addEventListener("click", openCreatePostModal);
@@ -211,16 +266,26 @@ if ("indexedDB" in window) {
 // }
 
 function sendData() {
+  const id = new Date().toISOString();
+  const postData = new FormData();
+  postData.append("id", id);
+  postData.append("title", titleInput.value);
+  postData.append("location", locationInput.value);
+  postData.append("rawLocationLat", fetchedLocation.lat);
+  postData.append("rawLocationLng", fetchedLocation.lng);
+  postData.append("file", picture, id + ".png");
+
   fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({
-      id: new Date().toISOString(),
-      title: titleInput.value,
-      location: locationInput.value,
-      image:
-        "https://firebasestorage.googleapis.com/v0/b/pwa-udemy-9d70f.appspot.com/o/sf-boat.jpg?alt=media&token=bdc56969-742d-4ec6-a9cb-5aecd188f4ff",
-    }),
+    body: postData,
+    // headers: { "Content-Type": "application/json", Accept: "application/json" },
+    // body: JSON.stringify({
+    //   id: new Date().toISOString(),
+    //   title: titleInput.value,
+    //   location: locationInput.value,
+    //   image:
+    //     "https://firebasestorage.googleapis.com/v0/b/pwa-udemy-9d70f.appspot.com/o/sf-boat.jpg?alt=media&token=bdc56969-742d-4ec6-a9cb-5aecd188f4ff",
+    // }),
   }).then((res) => {
     console.log("Send data", res);
     updateUI();
@@ -244,6 +309,8 @@ form.addEventListener("submit", (e) => {
         id: new Date().toISOString(),
         title: titleInput.value,
         location: locationInput.value,
+        picture,
+        rawLocation: fetchedLocation,
       };
       writeData("sync-posts", post)
         .then(() => sw.sync.register("sync-new-post"))

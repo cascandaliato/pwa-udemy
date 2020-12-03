@@ -1,7 +1,7 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/utility.js");
 
-const VER = 51;
+const VER = 57;
 
 const CACHE_STATIC_NAME = `static-v${VER}`;
 const CACHE_DYNAMIC_NAME = `dynamic-v${VER}`;
@@ -13,6 +13,7 @@ const STATIC_ASSETS = [
   "/src/js/app.js",
   "/src/js/feed.js",
   "/src/js/idb.js",
+  "/src/js/utility.js",
   "/src/js/material.min.js",
   "/src/css/app.css",
   "/src/css/feed.css",
@@ -211,19 +212,28 @@ self.addEventListener("sync", (event) => {
     event.waitUntil(
       readAllData("sync-posts").then((data) => {
         for (const dt of data) {
+          const postData = new FormData();
+          postData.append("id", dt.id);
+          postData.append("title", dt.title);
+          postData.append("location", dt.location);
+          postData.append("rawLocationLat", dt.rawLocation.lat);
+          postData.append("rawLocationLng", dt.rawLocation.lng);
+          postData.append("file", dt.picture, dt.id + ".png");
+
           fetch(url, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            body: JSON.stringify({
-              id: dt.id,
-              title: dt.title,
-              location: dt.location,
-              image:
-                "https://firebasestorage.googleapis.com/v0/b/pwa-udemy-9d70f.appspot.com/o/sf-boat.jpg?alt=media&token=bdc56969-742d-4ec6-a9cb-5aecd188f4ff",
-            }),
+            body: postData,
+            // headers: {
+            //   "Content-Type": "application/json",
+            //   Accept: "application/json",
+            // },
+            // body: JSON.stringify({
+            //   id: dt.id,
+            //   title: dt.title,
+            //   location: dt.location,
+            //   image:
+            //     "https://firebasestorage.googleapis.com/v0/b/pwa-udemy-9d70f.appspot.com/o/sf-boat.jpg?alt=media&token=bdc56969-742d-4ec6-a9cb-5aecd188f4ff",
+            // }),
           })
             .then((res) => {
               console.log("Send data", res);
