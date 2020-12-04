@@ -4,9 +4,12 @@ const enableNotificationsButtons = document.querySelectorAll(
 );
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js", { scope: "/" }).then(function () {
-    console.log("Service worker registered!");
-  });
+  navigator.serviceWorker
+    .register("/service-worker.js", { scope: "/" })
+    .then(function () {
+      // navigator.serviceWorker.register("/sw.js", { scope: "/" }).then(function () {
+      console.log("Service worker registered!");
+    });
 }
 
 window.addEventListener("beforeinstallprompt", (e) => {
